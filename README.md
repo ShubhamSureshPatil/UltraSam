@@ -80,10 +80,15 @@ To lauch the docker
 docker run --rm --gpus all -it -v $(pwd):/workspace/UltraSam ultrasam:latest bash
 ```
 
-To run a sample inference directly from host:
+Run a sample test script inside the container:
 
 ```bash
-# Run inference on sample dataset
+python visual_inference.py
+```
+
+To run a sample inference test using MMDet directly from host:
+
+```bash
 docker run --rm --gpus all -v $(pwd):/workspace/UltraSam \
     ultrasam:latest bash -c "
     cd /workspace/UltraSam && \
