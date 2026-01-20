@@ -8,23 +8,6 @@ _Adrien Meyer, Aditya Murali, Farahdiba Zarin, Didier Mutter, Nicolas Padoy_
 ![UltraSam](./assets/UltraSam_main.png)
 
 
-## Quick Start with Docker
-
-For the easiest setup, use Docker with GPU support:
-
-```bash
-git clone https://github.com/CAMMA-public/UltraSam
-cd UltraSam
-
-# Build Docker image
-docker build -t ultrasam:latest .
-
-# Run sample inference
-docker run --rm --gpus all -v $(pwd):/workspace/UltraSam ultrasam:latest python visual_inference.py
-```
-
-See [Docker section](#docker-alternative) for complete instructions.
-
 ## Minimal working example
 <details>
 <summary>Click to expand Install</summary>
@@ -66,16 +49,21 @@ mim test mmdet configs/UltraSAM/UltraSAM_full/UltraSAM_box_refine.py --checkpoin
 
 It will run inference on the specified sample dataset, modified inline from the base config. Predicted mask are visible in the show-dir. That is it!
 
-### Docker Alternative
+</details>
+
+## Docker Alternative
+
+<details>
+<summary>Click to expand Docker setup</summary>
 
 Docker provides the simplest way to run UltraSam with all dependencies pre-configured.
 
-#### Prerequisites
+### Prerequisites
 - Docker Engine with GPU support
 - NVIDIA Container Toolkit for GPU access
 - NVIDIA drivers compatible with CUDA 11.7
 
-#### Quick Docker Setup
+### Quick Docker Setup
 
 1. **Clone and build:**
 ```bash
@@ -109,23 +97,13 @@ docker run --rm --gpus all -v $(pwd):/workspace/UltraSam \
         --show-dir ./show_dir"
 ```
 
-
-#### Training with Docker
-```bash
-docker run --rm --gpus all -it -v $(pwd):/workspace/UltraSam ultrasam:latest bash
-
-mim train mmdet configs/UltraSAM/UltraSAM_full/UltraSAM_point_refine.py --gpus 1 --work-dir ./work_dir/training
-```
-
 **Docker Features:**
 - PyTorch 2.0.0 with CUDA 11.7 support
 - Pre-compiled MMCV, MMDetection, and MMPretrain
 - All dependencies with compatible versions (NumPy 1.26.4 enforced for tensor compatibility)
-- Automatic UltraSam.pth weight download if not present
 - Ready-to-use environment with PYTHONPATH configured
 
 </details>
-
 
 ## Usage
 

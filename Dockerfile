@@ -67,11 +67,23 @@ ENV PYTHONPATH=/workspace/UltraSam:/workspace/UltraSam/endosam
 # Create necessary directories
 RUN mkdir -p work_dir show_dir
 
-# Download UltraSam weights (if not already present)
-RUN if [ ! -f "UltraSam.pth" ]; then \
-    echo "Downloading UltraSam weights..." && \
-    wget -O UltraSam.pth "https://s3.unistra.fr/camma_public/github/ultrasam/UltraSam.pth"; \
+# Download UltraSam weights (ensure they exist)
+RUN echo "Checking for UltraSam weights..." && \
+    if [ ! -f "UltraSam.pth" ] || [ ! -s "UltraSam.pth" ]; then \
+        echo "Downloading UltraSam weights..." && \
+        wget --progress=bar:force -O UltraSam.pth "https://s3.unistra.fr/camma_public/github/ultrasam/UltraSam.pth" && \
+        echo "Download complete. File size: $(ls -lh UltraSam.pth)" && \
+        echo "Verifying download..." && \
+        file UltraSam.pth; \
+    else \
+        echo "UltraSam.pth already exists. Size: $(ls -lh UltraSam.pth)"; \
     fi
+
+# Final verification
+RUN echo "=== Build verification ===" && \
+    ls -la UltraSam.pth && \
+    echo "UltraSam.pth size: $(stat -f%z UltraSam.pth 2>/dev/null || stat -c%s UltraSam.pth) bytes" && \
+    echo "=== Environment ready ==="
 
 # Set default command
 CMD ["/bin/bash"]
