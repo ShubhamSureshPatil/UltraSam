@@ -67,17 +67,20 @@ ENV PYTHONPATH=/workspace/UltraSam:/workspace/UltraSam/endosam
 # Create necessary directories
 RUN mkdir -p work_dir show_dir
 
-# Download UltraSam weights (ensure they exist)
-RUN echo "Checking for UltraSam weights..." && \
-    if [ ! -f "UltraSam.pth" ] || [ ! -s "UltraSam.pth" ]; then \
-        echo "Downloading UltraSam weights..." && \
-        wget --progress=bar:force -O UltraSam.pth "https://s3.unistra.fr/camma_public/github/ultrasam/UltraSam.pth" && \
-        echo "Download complete. File size: $(ls -lh UltraSam.pth)" && \
-        echo "Verifying download..." && \
-        file UltraSam.pth; \
+# Copy UltraSam weights from host directory, or download if not present
+RUN echo "=== UltraSam weights setup ===" && \
+    if [ -f "UltraSam.pth" ]; then \
+        echo "Using existing UltraSam.pth from host directory" && \
+        ls -lh UltraSam.pth; \
     else \
-        echo "UltraSam.pth already exists. Size: $(ls -lh UltraSam.pth)"; \
-    fi
+        echo "UltraSam.pth not found, downloading..." && \
+        wget --progress=bar:force -O UltraSam.pth "https://s3.unistra.fr/camma_public/github/ultrasam/UltraSam.pth" && \
+        echo "Download complete. File size: $(ls -lh UltraSam.pth)"; \
+    fi && \
+    echo "Verifying UltraSam weights..." && \
+    file UltraSam.pth && \
+    echo "Backing up weights for volume mount scenarios..." && \
+    cp UltraSam.pth /tmp/UltraSam.pth
 
 # Final verification
 RUN echo "=== Build verification ===" && \
@@ -85,5 +88,20 @@ RUN echo "=== Build verification ===" && \
     echo "UltraSam.pth size: $(stat -f%z UltraSam.pth 2>/dev/null || stat -c%s UltraSam.pth) bytes" && \
     echo "=== Environment ready ==="
 
-# Set default command
+# Create entrypoint script to handle volume mount scenarios
+RUN echo '#!/bin/bash\n\
+echo "=== Container startup ==="\n\
+if [ ! -f "/workspace/UltraSam/UltraSam.pth" ]; then\n\
+    echo "UltraSam.pth not found in working directory, copying from backup..."\n\
+    cp /tmp/UltraSam.pth /workspace/UltraSam/UltraSam.pth\n\
+    echo "UltraSam.pth restored: $(ls -lh /workspace/UltraSam/UltraSam.pth)"\n\
+else\n\
+    echo "UltraSam.pth found: $(ls -lh /workspace/UltraSam/UltraSam.pth)"\n\
+fi\n\
+echo "=== Ready for execution ==="\n\
+exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+# Set entrypoint and default command
+ENTRYPOINT ["/entrypoint.sh"]
+
 CMD ["/bin/bash"]

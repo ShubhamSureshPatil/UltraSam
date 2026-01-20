@@ -13,10 +13,6 @@ env
 venv
 .env
 
-# Model weights (download fresh in container)
-*.pth
-UltraSam.pth
-
 # IDE
 .vscode
 .idea
